@@ -1,8 +1,8 @@
-import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter, Text, Graphics } from "pixi.js";
+import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter, Text, Graphics, Container } from "pixi.js";
 import { handleClick, type DataItem, type Positions } from "./data";
 
 // Spawn items on random positions
-export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>, scoreText: Text, score: Graphics) {
+export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>, scoreText: Text, score: Graphics, gameContainer: Container, uiContainer: Container) {
     let spawnedItems: Array<Sprite> = [];
     const baseTexture = await Assets.load('/level0.webp');
     const ITEMS_COUNT = 6;
@@ -35,24 +35,30 @@ export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>,
             const item = new Sprite(croppedTexture);
             item.anchor.set(0.5);
             item.alpha = 0.8
+            
             if (availableItem.rotate) {
                 item.rotation = Math.PI / 2;
             }
+            const currentRatio = app.screen.height / baseTexture.height;
 
-            item.x = pos.x;
-            item.y = pos.y;
+            item.scale.set(currentRatio); 
+            item.scale.x *= 0.8
+            item.scale.y *= 0.8
+
+            item.x = pos.x * currentRatio;
+            item.y = pos.y * currentRatio;
 
             const filter = new ColorMatrixFilter();
             item.filters = [filter];
             item.eventMode = 'static';
             item.cursor = 'default';
 
-            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem, scoreText, score));
+            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem, scoreText, score, uiContainer));
 
             pos.isOccupied = true;
             availableItem.isSpawned = true;
 
-            app.stage.addChild(item);
+            gameContainer.addChild(item);
             spawnedItems.push(item);
         }
     }

@@ -1,4 +1,4 @@
-import { Application, Assets, Sprite, Graphics, Text } from "pixi.js";
+import { Application, Assets, Sprite, Graphics, Text, Container } from "pixi.js";
 import './style.css';
 import { spawnItems } from "./items";
 import { itemsToCrop, positions, GAME_DATA, checkMobile } from "./data";
@@ -9,6 +9,11 @@ const app = new Application();
 await app.init({ background: "white", resizeTo: window });
 document.body.appendChild(app.canvas);
 
+const gameContainer = new Container()
+const uiContainer = new Container();
+app.stage.addChild(gameContainer);
+app.stage.addChild(uiContainer);
+
 let isDragging = false;
 let startX = 0;
 
@@ -16,7 +21,7 @@ const background = await Assets.load(backUrl);
 const backSprite = new Sprite(background);
 const ratio = app.screen.height / background.height;
 backSprite.scale.set(ratio, ratio);
-app.stage.addChild(backSprite);
+gameContainer.addChild(backSprite);
 
 const score = new Graphics();
 score.roundRect(0, 0, 250, 50, 23);
@@ -26,7 +31,7 @@ score.x = 10;
 score.y = 10;
 score.alpha = 0.7;
 score.zIndex = 1;
-app.stage.addChild(score);
+uiContainer.addChild(score);
 
 const scoreText = new Text() 
 scoreText.text = `Осталось ${GAME_DATA.remainItems}`;
@@ -37,10 +42,10 @@ scoreText.style.fontWeight = "bold";
 scoreText.x = 14;
 scoreText.y = 12;
 scoreText.zIndex = 2;
-app.stage.addChild(scoreText);
+uiContainer.addChild(scoreText);
 
 let mousePos = {x: 0, y: 0}
-let items = await spawnItems(app, itemsToCrop, positions, scoreText, score);
+let items = await spawnItems(app, itemsToCrop, positions, scoreText, score, gameContainer, uiContainer);
 
 if (checkMobile()) {
   items.forEach(item => item.position);
@@ -54,21 +59,20 @@ if (checkMobile()) {
 
     const dx = e.clientX - startX;
     startX = e.clientX;
-
-    backSprite.x += dx;
-    items.forEach(item => item.x += dx);
+    if(gameContainer.x + dx < 0 && gameContainer.x + dx >= -(backSprite.width - app.screen.width)) {
+      gameContainer.x += dx;
+    }
+    
   });
 
   window.addEventListener('pointerup', () => isDragging = false);
 } else {
-  app.ticker.add((delta) => {
-    if(mousePos.x < 150 && backSprite.position.x !== 0) {
-      backSprite.x += 5;
-      items.forEach(item => item.x += 5);
+  app.ticker.add(() => {
+    if(mousePos.x < 150 && gameContainer.position.x !== 0) {
+      gameContainer.x += 5;
     }
-    if(mousePos.x > app.screen.width - 150 && backSprite.position.x >= -(backSprite.width - app.screen.width)) {
-      backSprite.x -= 5;
-      items.forEach(item => item.x -= 5);
+    if(mousePos.x > app.screen.width - 150 && gameContainer.position.x >= -(gameContainer.width - app.screen.width)) {
+      gameContainer.x -= 5;
     }
   });
   window.addEventListener('mousemove', (e) => {
@@ -79,7 +83,8 @@ if (checkMobile()) {
 
 window.addEventListener('resize', () => {
   app.renderer.resize(window.innerWidth, window.innerHeight)
-  backSprite.scale.set(ratio, ratio);
+  gameContainer.scale.set(ratio, ratio);
+  uiContainer.scale.set(ratio, ratio);
 });
 
 

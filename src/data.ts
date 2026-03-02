@@ -1,4 +1,4 @@
-import { Sprite, Application, Text, Graphics } from "pixi.js";
+import { Sprite, Application, Text, Graphics, Container } from "pixi.js";
 
 export const GAME_DATA = {
     remainItems: 6,
@@ -68,21 +68,21 @@ export const itemsToCrop: DataItem[] = [
 
 // Positions
 export const positions: Positions[] = [
-    { canSpawn: ["obj_1", "obj_2", "obj_8", "obj_9", "obj_13", "obj_14", "obj_15", "obj_19", "obj_20", "obj_21", "obj_23"], x: 680, y: 800, isOccupied: false },
-    { canSpawn: ["obj_4", "obj_5", "obj_15", "obj_16", "obj_18", "obj_19", "obj_21", "obj_22", "obj_25"], x: 870, y: 670, isOccupied: false },
-    { canSpawn: ["obj_4", "obj_5", "obj_26", "obj_27", "obj_28", "obj_29", "obj_30"], x: 3000, y: 630, isOccupied: false },
-    { canSpawn: ["obj_3", "obj_7", "obj_11", "obj_12", "obj_17", "obj_28", "obj_31", "obj_32", "obj_33", "obj_34", "obj_42"], x: 2800, y: 1130, isOccupied: false },
-    { canSpawn: ["obj_6"], x: 200, y: 130, isOccupied: false },
-    { canSpawn: ["obj_6"], x: 1700, y: 100, isOccupied: false },
-    { canSpawn: ["obj_10"], x: 2000, y: 440, isOccupied: false },
-    { canSpawn: ["obj_15"], x: 2230, y: 400, isOccupied: false },
-    { canSpawn: ["obj_23", "obj_32", "obj_15", "obj_35", "obj_36", "obj_39", "obj_40"], x: 1480, y: 1180, isOccupied: false },
-    { canSpawn: ["obj_37", "obj_24", "obj_25", "obj_26"], x: 2600, y: 850, isOccupied: false },
-    { canSpawn: ["obj_41"], x: 2745, y: 840, isOccupied: false },
-    { canSpawn: ["obj_43"], x: 1600, y: 880, isOccupied: false },
+    { canSpawn: ["obj_1", "obj_2", "obj_8", "obj_9", "obj_13", "obj_14", "obj_15", "obj_19", "obj_20", "obj_21", "obj_23"], x: 510, y: 620, isOccupied: false },
+    { canSpawn: ["obj_4", "obj_5", "obj_15", "obj_16", "obj_18", "obj_19", "obj_21", "obj_22", "obj_25"], x: 700, y: 520, isOccupied: false },
+    { canSpawn: ["obj_4", "obj_5", "obj_26", "obj_27", "obj_28", "obj_29", "obj_30"], x: 2340, y: 480, isOccupied: false },
+    { canSpawn: ["obj_3", "obj_7", "obj_11", "obj_12", "obj_17", "obj_28", "obj_31", "obj_32", "obj_33", "obj_34", "obj_42"], x: 2170, y: 870, isOccupied: false },
+    { canSpawn: ["obj_6"], x: 200, y: 100, isOccupied: false },
+    { canSpawn: ["obj_6"], x: 1300, y: 100, isOccupied: false },
+    { canSpawn: ["obj_10"], x: 1550, y: 360, isOccupied: false },
+    { canSpawn: ["obj_15"], x: 1750, y: 320, isOccupied: false },
+    { canSpawn: ["obj_23", "obj_32", "obj_15", "obj_35", "obj_36", "obj_39", "obj_40"], x: 1140, y: 890, isOccupied: false },
+    { canSpawn: ["obj_37", "obj_24", "obj_25", "obj_26"], x: 2020, y: 650, isOccupied: false },
+    { canSpawn: ["obj_41"], x: 2140, y: 650, isOccupied: false },
+    { canSpawn: ["obj_43"], x: 1260, y: 690, isOccupied: false },
 ]
 
-function createWinAlert(app: Application, score: Graphics, scoreText: Text) {
+function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiContainer: Container) {
     const width = 700
     const height = 200
     const winBackground = new Graphics();
@@ -94,7 +94,7 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text) {
     winBackground.x = app.screen.width / 2 - winBackground.width
     winBackground.y = app.screen.height / 2 - winBackground.height
     winBackground.zIndex = 2
-    app.stage.addChild(winBackground);
+    uiContainer.addChild(winBackground);
 
     const winText = new Text({
         text: 'Поздравляем!\nВы победили',
@@ -128,7 +128,7 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text) {
 }
 
 // Handle click on item
-export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics) {
+export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics, uiContainer: Container) {
     console.log(`Нашли: ${availableItem.name}`);
     const index = spawnedItems.indexOf(item);
     if (index > -1) spawnedItems.splice(index, 1);
@@ -142,7 +142,7 @@ export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Appl
             GAME_DATA.remainItems--
             scoreText.text = `Осталось ${GAME_DATA.remainItems}`
             if (GAME_DATA.remainItems === 0) {
-                createWinAlert(app, score, scoreText)
+                createWinAlert(app, score, scoreText, uiContainer)
             }
         }
     };
