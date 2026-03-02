@@ -130,7 +130,6 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
 }
 
 export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics, uiContainer: Container) {
-    console.log(`Нашли: ${availableItem.name}`);
     const index = spawnedItems.indexOf(item);
     if (index > -1) spawnedItems.splice(index, 1);
     item.eventMode = 'none';
@@ -138,7 +137,6 @@ export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Appl
         item.alpha -= 0.02;
         item.scale.set(item.scale.x + 0.02, item.scale.y + 0.02);
         if (item.alpha <= 0) {
-            createWinAlert(app, score, scoreText, uiContainer)
             app.ticker.remove(tick);
             item.destroy();
             GAME_DATA.remainItems--
