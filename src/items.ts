@@ -1,7 +1,6 @@
 import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter, Text, Graphics, Container } from "pixi.js";
 import { handleClick, type DataItem, type Positions } from "./data";
 
-// Spawn items on random positions
 export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>, scoreText: Text, score: Graphics, gameContainer: Container, uiContainer: Container) {
     let spawnedItems: Array<Sprite> = [];
     const baseTexture = await Assets.load('/level0.webp');

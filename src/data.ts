@@ -18,8 +18,6 @@ export interface Positions {
     y: number;
     isOccupied: boolean
 }
-
-// Items
 export const itemsToCrop: DataItem[] = [
     { name: 'obj_1',  rect: [0, 0, 122, 111], rotate: false, isSpawned: false },
     { name: 'obj_2', rect: [120, 0, 122, 80], rotate: false, isSpawned: false },
@@ -66,7 +64,6 @@ export const itemsToCrop: DataItem[] = [
     { name: 'obj_43', rect: [400, 121, 120, 453], rotate: false, isSpawned: false },
 ];
 
-// Positions
 export const positions: Positions[] = [
     { canSpawn: ["obj_1", "obj_2", "obj_8", "obj_9", "obj_13", "obj_14", "obj_15", "obj_19", "obj_20", "obj_21", "obj_23"], x: 510, y: 620, isOccupied: false },
     { canSpawn: ["obj_4", "obj_5", "obj_15", "obj_16", "obj_18", "obj_19", "obj_21", "obj_22", "obj_25"], x: 700, y: 520, isOccupied: false },
@@ -83,24 +80,29 @@ export const positions: Positions[] = [
 ]
 
 function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiContainer: Container) {
-    const width = 700
-    const height = 200
+    let width = 700
+    let height = 200
+    if(checkMobile()) {
+        width = 370
+        height = 150
+    }
     const winBackground = new Graphics();
-    winBackground.alpha = 0
     winBackground.roundRect(-width / 2, -height / 2, width, height, 23);
     winBackground.fill("#d6d6d6");
     winBackground.stroke({ width: 5, color: "#6d6d6d" });
-    winBackground.scale.set(0, 0)
-    winBackground.x = app.screen.width / 2 - winBackground.width
-    winBackground.y = app.screen.height / 2 - winBackground.height
-    winBackground.zIndex = 2
+    
+    winBackground.x = (app.screen.width / 2) / uiContainer.scale.x;
+    winBackground.y = (app.screen.height / 2) / uiContainer.scale.y;
+    
+    winBackground.alpha = 0;
+    winBackground.scale.set(0); 
     uiContainer.addChild(winBackground);
 
     const winText = new Text({
         text: 'Поздравляем!\nВы победили',
         style: {
             fontFamily: 'Source Code Pro',
-            fontSize: 60,
+            fontSize: 40,
             fill: '#000000',
             fontWeight: 'bold',
             align: 'center',
@@ -127,7 +129,6 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
     app.ticker.add(tick);
 }
 
-// Handle click on item
 export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics, uiContainer: Container) {
     console.log(`Нашли: ${availableItem.name}`);
     const index = spawnedItems.indexOf(item);
@@ -137,6 +138,7 @@ export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Appl
         item.alpha -= 0.02;
         item.scale.set(item.scale.x + 0.02, item.scale.y + 0.02);
         if (item.alpha <= 0) {
+            createWinAlert(app, score, scoreText, uiContainer)
             app.ticker.remove(tick);
             item.destroy();
             GAME_DATA.remainItems--
