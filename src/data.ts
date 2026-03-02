@@ -1,4 +1,9 @@
-import { Sprite, Application } from "pixi.js";
+import { Sprite, Application, Text, Graphics } from "pixi.js";
+
+export const GAME_DATA = {
+    remainItems: 6,
+    score: 0
+}
 
 export interface DataItem {
     name: string;
@@ -27,7 +32,7 @@ export const itemsToCrop: DataItem[] = [
     { name: 'obj_9', rect: [333, 504, 60, 66], rotate: false, isSpawned: false },
     { name: 'obj_10', rect: [543, 595, 117, 217], rotate: false, isSpawned: false },
     { name: 'obj_11', rect: [321, 570, 220, 279], rotate: false, isSpawned: false },
-    { name: 'obj_12', rect: [321, 849, 170, 168], rotate: false, isSpawned: false },
+    { name: 'obj_12', rect: [321, 849, 167, 168], rotate: false, isSpawned: false },
     { name: 'obj_13', rect: [805, 66, 175, 104], rotate: false, isSpawned: false },
     { name: 'obj_14', rect: [1110, 94, 89, 111], rotate: true, isSpawned: false },
     { name: 'obj_15', rect: [1066, 205, 90, 122], rotate: true, isSpawned: false },
@@ -52,12 +57,12 @@ export const itemsToCrop: DataItem[] = [
     { name: 'obj_34', rect: [716, 833, 129, 184], rotate: true, isSpawned: false },
     { name: 'obj_35', rect: [846, 812, 88, 203], rotate: false, isSpawned: false },
     { name: 'obj_36', rect: [959, 734, 80, 158], rotate: true, isSpawned: false },
-    { name: 'obj_37', rect: [803, 701, 161, 121], rotate: false, isSpawned: false },
+    { name: 'obj_37', rect: [803, 701, 155, 111], rotate: false, isSpawned: false },
     { name: 'obj_38', rect: [692, 509, 115, 305], rotate: false, isSpawned: false },
     { name: 'obj_39', rect: [806, 173, 101, 157], rotate: false, isSpawned: false },
     { name: 'obj_40', rect: [794, 344, 116, 162], rotate: true, isSpawned: false },
-    { name: 'obj_41', rect: [695, 250, 100, 270], rotate: false, isSpawned: false },
-    { name: 'obj_42', rect: [521, 311, 171, 262], rotate: true, isSpawned: false },
+    { name: 'obj_41', rect: [695, 250, 100, 260], rotate: false, isSpawned: false },
+    { name: 'obj_42', rect: [521, 311, 167, 262], rotate: true, isSpawned: false },
     { name: 'obj_43', rect: [400, 121, 120, 453], rotate: false, isSpawned: false },
 ];
 
@@ -77,19 +82,74 @@ export const positions: Positions[] = [
     { canSpawn: ["obj_43"], x: 1600, y: 880, isOccupied: false },
 ]
 
+function createWinAlert(app: Application, score: Graphics, scoreText: Text) {
+    const width = 700
+    const height = 200
+    const winBackground = new Graphics();
+    winBackground.alpha = 0
+    winBackground.roundRect(-width / 2, -height / 2, width, height, 23);
+    winBackground.fill("#d6d6d6");
+    winBackground.stroke({ width: 5, color: "#6d6d6d" });
+    winBackground.scale.set(0, 0)
+    winBackground.x = app.screen.width / 2 - winBackground.width
+    winBackground.y = app.screen.height / 2 - winBackground.height
+    winBackground.zIndex = 2
+    app.stage.addChild(winBackground);
+
+    const winText = new Text({
+        text: 'Поздравляем!\nВы победили',
+        style: {
+            fontFamily: 'Source Code Pro',
+            fontSize: 60,
+            fill: '#000000',
+            fontWeight: 'bold',
+            align: 'center',
+            wordWrap: true,
+            wordWrapWidth: 500, 
+            lineHeight: 70
+        }
+    });
+    winText.x = -winText.width / 2;
+    winText.y = -winText.height / 2;
+    winText.zIndex = 2;
+    winBackground.addChild(winText);
+
+    const tick = () => {
+        
+        scoreText.alpha -= 0.02;
+        score.alpha -= 0.02;
+        winBackground.alpha += 0.02;
+        winBackground.scale.set(winBackground.scale.x + 0.02, winBackground.scale.y + 0.02);
+        if (winBackground.alpha >= 1 || winBackground.scale.x >= 1) {
+            app.ticker.remove(tick);
+        }
+    }
+    app.ticker.add(tick);
+}
+
 // Handle click on item
-export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem) {
+export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics) {
     console.log(`Нашли: ${availableItem.name}`);
     const index = spawnedItems.indexOf(item);
     if (index > -1) spawnedItems.splice(index, 1);
     item.eventMode = 'none';
     const tick = () => {
-        item.alpha -= 0.05;
+        item.alpha -= 0.02;
         item.scale.set(item.scale.x + 0.02, item.scale.y + 0.02);
         if (item.alpha <= 0) {
             app.ticker.remove(tick);
             item.destroy();
+            GAME_DATA.remainItems--
+            scoreText.text = `Осталось ${GAME_DATA.remainItems}`
+            if (GAME_DATA.remainItems === 0) {
+                createWinAlert(app, score, scoreText)
+            }
         }
     };
     app.ticker.add(tick);
 }
+
+export const checkMobile = () => {
+    const ua = navigator.userAgent;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+};

@@ -1,8 +1,8 @@
-import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter } from "pixi.js";
+import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter, Text, Graphics } from "pixi.js";
 import { handleClick, type DataItem, type Positions } from "./data";
 
 // Spawn items on random positions
-export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>) {
+export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>, scoreText: Text, score: Graphics) {
     let spawnedItems: Array<Sprite> = [];
     const baseTexture = await Assets.load('/level0.webp');
     const ITEMS_COUNT = 6;
@@ -34,7 +34,7 @@ export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>,
 
             const item = new Sprite(croppedTexture);
             item.anchor.set(0.5);
-
+            item.alpha = 0.8
             if (availableItem.rotate) {
                 item.rotation = Math.PI / 2;
             }
@@ -47,7 +47,7 @@ export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>,
             item.eventMode = 'static';
             item.cursor = 'default';
 
-            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem));
+            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem, scoreText, score));
 
             pos.isOccupied = true;
             availableItem.isSpawned = true;
