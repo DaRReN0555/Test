@@ -1,0 +1,60 @@
+import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter } from "pixi.js";
+import { handleClick, type DataItem, type Positions } from "./data";
+
+// Spawn items on random positions
+export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>) {
+    let spawnedItems: Array<Sprite> = [];
+    const baseTexture = await Assets.load('/level0.webp');
+    const ITEMS_COUNT = 6;
+    
+    positions.forEach(p => p.isOccupied = false);
+    itemsToCrop.forEach(i => i.isSpawned = false);
+
+    const shuffledPositions = [...positions].sort(() => Math.random() - 0.5);
+
+    for (const pos of shuffledPositions) {
+        if (spawnedItems.length >= ITEMS_COUNT) break;
+
+        const availableItem = itemsToCrop
+            .filter(item => !item.isSpawned && pos.canSpawn.includes(item.name))
+            .sort(() => Math.random() - 0.5)[0];
+
+        if (availableItem) {
+            const region = new Rectangle(
+                availableItem.rect[0], 
+                availableItem.rect[1], 
+                availableItem.rect[2], 
+                availableItem.rect[3]
+            );
+
+            const croppedTexture = new Texture({
+                source: baseTexture,
+                frame: region
+            });
+
+            const item = new Sprite(croppedTexture);
+            item.anchor.set(0.5);
+
+            if (availableItem.rotate) {
+                item.rotation = Math.PI / 2;
+            }
+
+            item.x = pos.x;
+            item.y = pos.y;
+
+            const filter = new ColorMatrixFilter();
+            item.filters = [filter];
+            item.eventMode = 'static';
+            item.cursor = 'default';
+
+            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem));
+
+            pos.isOccupied = true;
+            availableItem.isSpawned = true;
+
+            app.stage.addChild(item);
+            spawnedItems.push(item);
+        }
+    }
+    return spawnedItems;
+}
