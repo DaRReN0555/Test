@@ -1,65 +1,88 @@
-import { Application, Assets, Sprite, Texture, Rectangle, ColorMatrixFilter, Text, Graphics, Container } from "pixi.js";
-import { handleClick, type DataItem, type Positions } from "./data";
+import { Application, Assets, ColorMatrixFilter, Text, Graphics, Container } from "pixi.js";
+import { handleClick, itemsNames, pickRandomItems } from "./data";
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
-export async function spawnItems(app: Application, itemsToCrop: Array<DataItem>, positions: Array<Positions>, scoreText: Text, score: Graphics, gameContainer: Container, uiContainer: Container) {
-    let spawnedItems: Array<Sprite> = [];
-    const baseTexture = await Assets.load('/level0.webp');
-    const ITEMS_COUNT = 6;
+export async function createSingleItem(app: Application, scoreText: Text, score: Graphics, uiContainer: Container, gameContainer: Container, state: { items: Array<string>, skin: string }) {
     
-    positions.forEach(p => p.isOccupied = false);
-    itemsToCrop.forEach(i => i.isSpawned = false);
+    await Assets.load(['spine-data', 'spine-atlas']);
 
-    const shuffledPositions = [...positions].sort(() => Math.random() - 0.5);
+    const createSpineInstance = async () => {
+        const s = await Spine.from({
+            skeleton: 'spine-data',
+            atlas: 'spine-atlas',
+            autoUpdate: true
+        });
+        s.skeleton.setSkinByName(state.skin);
+        s.state.setAnimation(0, 'idle', true);
+        s.skeleton.setSlotsToSetupPose();
+        s.scale.set(1.2);
+        return s;
+    };
 
-    for (const pos of shuffledPositions) {
-        if (spawnedItems.length >= ITEMS_COUNT) break;
+    const item = await createSpineInstance();
+    const lightEffect = await createSpineInstance();
+    
+    const lightSlotName = "animations/anim2/svet";
+    const isLampSelected = state.items.includes("animations/anim0/lamp");
 
-        const availableItem = itemsToCrop
-            .filter(item => !item.isSpawned && pos.canSpawn.includes(item.name))
-            .sort(() => Math.random() - 0.5)[0];
-
-        if (availableItem) {
-            const region = new Rectangle(
-                availableItem.rect[0], 
-                availableItem.rect[1], 
-                availableItem.rect[2], 
-                availableItem.rect[3]
-            );
-
-            const croppedTexture = new Texture({
-                source: baseTexture,
-                frame: region
-            });
-
-            const item = new Sprite(croppedTexture);
-            item.anchor.set(0.5);
-            item.alpha = 0.8
-            
-            if (availableItem.rotate) {
-                item.rotation = Math.PI / 2;
-            }
-            const currentRatio = app.screen.height / baseTexture.height;
-
-            item.scale.set(currentRatio); 
-            item.scale.x *= 0.8
-            item.scale.y *= 0.8
-
-            item.x = pos.x * currentRatio;
-            item.y = pos.y * currentRatio;
-
-            const filter = new ColorMatrixFilter();
-            item.filters = [filter];
-            item.eventMode = 'static';
-            item.cursor = 'default';
-
-            item.on('pointerdown', () => handleClick(item, spawnedItems, app, availableItem, scoreText, score, uiContainer));
-
-            pos.isOccupied = true;
-            availableItem.isSpawned = true;
-
-            gameContainer.addChild(item);
-            spawnedItems.push(item);
+    item.skeleton.slots.forEach(slot => {
+        const name = slot.data.name;
+        if (name === lightSlotName || !state.items.includes(name)) {
+            slot.attachment = null;
         }
-    }
-    return spawnedItems;
+    });
+
+    lightEffect.skeleton.slots.forEach(slot => {
+        const name = slot.data.name;
+        if (name === lightSlotName && isLampSelected) {
+            slot.data.blendMode = 3;
+        } else {
+            slot.attachment = null;
+        }
+    });
+
+    const spineWrapper = new Container();
+    const filter = new ColorMatrixFilter();
+    spineWrapper.filters = [filter];
+    
+    spineWrapper.addChild(item);
+    gameContainer.addChild(spineWrapper);
+    gameContainer.addChild(lightEffect);
+
+    item.eventMode = 'static';
+    item.cursor = 'default';
+
+    item.alpha = 0.75;
+
+    item.on('pointerdown', (e) => {
+        const localPos = item.toLocal(e.global);
+        let clickedItemName: string | null = null;
+        
+        item.skeleton.slots.forEach(slot => {
+            const slotName = slot.data.name;
+            const attachment = slot.getAttachment();
+            if (attachment && state.items.includes(slotName)) {
+                const vertices = new Float32Array(8);
+                try {
+                    (attachment as any).computeWorldVertices(slot, 0, (attachment as any).worldVerticesLength || 8, vertices, 0, 2);
+                } catch (err) {
+                    (attachment as any).computeWorldVertices(slot, vertices, 0, 2);
+                }
+                let minX = Math.min(vertices[0], vertices[2], vertices[4], vertices[6]);
+                let maxX = Math.max(vertices[0], vertices[2], vertices[4], vertices[6]);
+                let minY = Math.min(vertices[1], vertices[3], vertices[5], vertices[7]);
+                let maxY = Math.max(vertices[1], vertices[3], vertices[5], vertices[7]);
+
+                if (localPos.x >= minX && localPos.x <= maxX && localPos.y >= minY && localPos.y <= maxY) {
+                    clickedItemName = slotName;
+                }
+            }
+        });
+
+        if (clickedItemName) {
+            handleClick(item, clickedItemName, app, scoreText, score, uiContainer, state);
+        }
+    });
+
+    return item;
 }

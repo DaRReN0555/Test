@@ -1,82 +1,49 @@
-import { Sprite, Application, Text, Graphics, Container } from "pixi.js";
+import { Sprite, Application, Text, Graphics, Container, Assets } from "pixi.js";
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
+
+import backUrl from '/back_lv0.webp?url';
 
 export const GAME_DATA = {
     remainItems: 6,
     score: 0
 }
 
-export interface DataItem {
-    name: string;
-    rect: [number, number, number, number];
-    rotate: boolean;
-    isSpawned: boolean
-}
+export const itemsNames: Array<string> = [
+    "hogItem1",
+    "hogItem2",
+    "hogItem3",
+    "hogItem4",
+    "hogItem5",
+    "decorItem1",
+    "decorItem2",
+    "decorItem3",
+    "decorItem4",
+    "decorItem5",
+    "decorItem6",
+    "decorItem7",
+    "decorItem8",
+    "decorItem9",
+    "decorItem10",
+    "decorItem11",
+    "decorItem12",
+    "decorItem13",
+    "decorItem14",
+    "decorItem15",
+    "decorItem16",
+    "decorItem17",
+    "decorItem18",
+    "decorItem19",
+    "decorItem20",
+    "decorItem21",
+    "animations/anim0/lamp",
+]
 
-export interface Positions {
-    canSpawn: Array<string>;
-    x: number;
-    y: number;
-    isOccupied: boolean
-}
-export const itemsToCrop: DataItem[] = [
-    { name: 'obj_1',  rect: [0, 0, 122, 111], rotate: false, isSpawned: false },
-    { name: 'obj_2', rect: [120, 0, 122, 80], rotate: false, isSpawned: false },
-    { name: 'obj_3', rect: [0, 80, 400, 220],  rotate: false, isSpawned: false },
-    { name: 'obj_4', rect: [398, 16, 113, 100], rotate: false, isSpawned: false },
-    { name: 'obj_5', rect: [1125, 897, 75, 116], rotate: false, isSpawned: false },
-    { name: 'obj_6',  rect: [1, 292, 335, 284], rotate: true, isSpawned: false },
-    { name: 'obj_7', rect: [524, 71, 169, 242], rotate: false, isSpawned: false },
-    { name: 'obj_8', rect: [0, 574, 100, 62], rotate: false, isSpawned: false },
-    { name: 'obj_9', rect: [333, 504, 60, 66], rotate: false, isSpawned: false },
-    { name: 'obj_10', rect: [543, 595, 117, 217], rotate: false, isSpawned: false },
-    { name: 'obj_11', rect: [321, 570, 220, 279], rotate: false, isSpawned: false },
-    { name: 'obj_12', rect: [321, 849, 167, 168], rotate: false, isSpawned: false },
-    { name: 'obj_13', rect: [805, 66, 175, 104], rotate: false, isSpawned: false },
-    { name: 'obj_14', rect: [1110, 94, 89, 111], rotate: true, isSpawned: false },
-    { name: 'obj_15', rect: [1066, 205, 90, 122], rotate: true, isSpawned: false },
-    { name: 'obj_16', rect: [1038, 327, 87, 122], rotate: true, isSpawned: false },
-    { name: 'obj_17', rect: [541, 821, 180, 194], rotate: true, isSpawned: false },
-    { name: 'obj_18', rect: [1125, 371, 76, 125], rotate: false, isSpawned: false },
-    { name: 'obj_19', rect: [1125, 496, 81, 118], rotate: false, isSpawned: false },
-    { name: 'obj_20', rect: [1109, 7, 99, 80], rotate: false, isSpawned: false },
-    { name: 'obj_21', rect: [1036, 451, 86, 130], rotate: false, isSpawned: false },
-    { name: 'obj_22', rect: [1040, 607, 110, 95], rotate: false, isSpawned: false },
-    { name: 'obj_23', rect: [1058, 704, 84, 86], rotate: false, isSpawned: false },
-    { name: 'obj_24', rect: [1143, 769, 71, 128], rotate: true, isSpawned: false },
-    { name: 'obj_25', rect: [1039, 891, 87, 123], rotate: false, isSpawned: false },
-    { name: 'obj_26', rect: [937, 897, 94, 113], rotate: false, isSpawned: false },
-    { name: 'obj_27', rect: [693, 51, 112, 195], rotate: true, isSpawned: false },
-    { name: 'obj_28', rect: [976, 44, 134, 93], rotate: false, isSpawned: false },
-    { name: 'obj_29', rect: [977, 135, 86, 121], rotate: false, isSpawned: false },
-    { name: 'obj_30', rect: [921, 265, 118, 122], rotate: true, isSpawned: false },
-    { name: 'obj_31', rect: [928, 588, 112, 108], rotate: false, isSpawned: false },
-    { name: 'obj_32', rect: [914, 384, 118, 126], rotate: false, isSpawned: false },
-    { name: 'obj_33', rect: [806, 507, 125, 140], rotate: false, isSpawned: false },
-    { name: 'obj_34', rect: [716, 833, 129, 184], rotate: true, isSpawned: false },
-    { name: 'obj_35', rect: [846, 812, 88, 203], rotate: false, isSpawned: false },
-    { name: 'obj_36', rect: [959, 734, 80, 158], rotate: true, isSpawned: false },
-    { name: 'obj_37', rect: [803, 701, 155, 111], rotate: false, isSpawned: false },
-    { name: 'obj_38', rect: [692, 509, 115, 305], rotate: false, isSpawned: false },
-    { name: 'obj_39', rect: [806, 173, 101, 157], rotate: false, isSpawned: false },
-    { name: 'obj_40', rect: [794, 344, 116, 162], rotate: true, isSpawned: false },
-    { name: 'obj_41', rect: [695, 250, 100, 260], rotate: false, isSpawned: false },
-    { name: 'obj_42', rect: [521, 311, 167, 262], rotate: true, isSpawned: false },
-    { name: 'obj_43', rect: [400, 121, 120, 453], rotate: false, isSpawned: false },
-];
-
-export const positions: Positions[] = [
-    { canSpawn: ["obj_1", "obj_2", "obj_8", "obj_9", "obj_13", "obj_14", "obj_15", "obj_19", "obj_20", "obj_21", "obj_23"], x: 510, y: 620, isOccupied: false },
-    { canSpawn: ["obj_4", "obj_5", "obj_15", "obj_16", "obj_18", "obj_19", "obj_21", "obj_22", "obj_25"], x: 700, y: 520, isOccupied: false },
-    { canSpawn: ["obj_4", "obj_5", "obj_26", "obj_27", "obj_28", "obj_29", "obj_30"], x: 2340, y: 480, isOccupied: false },
-    { canSpawn: ["obj_3", "obj_7", "obj_11", "obj_12", "obj_17", "obj_28", "obj_31", "obj_32", "obj_33", "obj_34", "obj_42"], x: 2170, y: 870, isOccupied: false },
-    { canSpawn: ["obj_6"], x: 200, y: 100, isOccupied: false },
-    { canSpawn: ["obj_6"], x: 1300, y: 100, isOccupied: false },
-    { canSpawn: ["obj_10"], x: 1550, y: 360, isOccupied: false },
-    { canSpawn: ["obj_15"], x: 1750, y: 320, isOccupied: false },
-    { canSpawn: ["obj_23", "obj_32", "obj_15", "obj_35", "obj_36", "obj_39", "obj_40"], x: 1140, y: 890, isOccupied: false },
-    { canSpawn: ["obj_37", "obj_24", "obj_25", "obj_26"], x: 2020, y: 650, isOccupied: false },
-    { canSpawn: ["obj_41"], x: 2140, y: 650, isOccupied: false },
-    { canSpawn: ["obj_43"], x: 1260, y: 690, isOccupied: false },
+export const itemsSet: Array<string> = [
+    "mode1/skin_mode1_v1",
+    "mode1/skin_mode1_v2",
+    "mode1/skin_mode1_v3",
+    "mode1/skin_mode1_v4",
+    "mode1/skin_mode1_v5"
 ]
 
 function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiContainer: Container) {
@@ -129,23 +96,44 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
     app.ticker.add(tick);
 }
 
-export function handleClick(item: Sprite, spawnedItems: Array<Sprite>, app: Application, availableItem: DataItem, scoreText: Text, score: Graphics, uiContainer: Container) {
-    const index = spawnedItems.indexOf(item);
-    if (index > -1) spawnedItems.splice(index, 1);
-    item.eventMode = 'none';
+export function handleClick(
+    spineItem: Spine,
+    clickedSlotName: string, 
+    app: Application, 
+    scoreText: Text, 
+    score: Graphics, 
+    uiContainer: Container,
+    state: any 
+) {
+    const slot = spineItem.skeleton.findSlot(clickedSlotName);
+    if (!slot || !slot.attachment) return;
+
+    const itemIndex = state.items.indexOf(clickedSlotName);
+    if (itemIndex > -1) {
+        state.items.splice(itemIndex, 1);
+    } else {
+        return; 
+    }
+
+    let alpha = 1;
+
     const tick = () => {
-        item.alpha -= 0.02;
-        item.scale.set(item.scale.x + 0.02, item.scale.y + 0.02);
-        if (item.alpha <= 0) {
+        alpha -= 0.05;
+        slot.color.a = Math.max(0, alpha);
+
+        if (alpha <= 0) {
             app.ticker.remove(tick);
-            item.destroy();
-            GAME_DATA.remainItems--
-            scoreText.text = `Осталось ${GAME_DATA.remainItems}`
+            slot.attachment = null;
+            slot.color.a = 1; 
+            GAME_DATA.remainItems--;
+            scoreText.text = `Осталось ${GAME_DATA.remainItems}`;
+
             if (GAME_DATA.remainItems === 0) {
-                createWinAlert(app, score, scoreText, uiContainer)
+                createWinAlert(app, score, scoreText, uiContainer);
             }
         }
     };
+
     app.ticker.add(tick);
 }
 
@@ -153,3 +141,110 @@ export const checkMobile = () => {
     const ua = navigator.userAgent;
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
 };
+
+export function pickRandomItems(count: number): { items: string[]; skin: string } {
+    const shuffledItems = [...itemsNames].sort(() => 0.5 - Math.random());
+    const shuffledItemsSet = [...itemsSet].sort(() => 0.5 - Math.random());
+
+    const result = {
+        items: shuffledItems.slice(0, count),
+        skin: shuffledItemsSet[0]
+    }
+
+    return result
+}
+
+export function createUI(app: Application, uiContainer: Container) {
+    const score = new Graphics();
+    score.roundRect(0, 0, 250, 50, 23);
+    score.fill("#f8d485");
+    score.stroke({ width: 5, color: "#6d6d6d" });
+    score.x = 10;
+    score.y = 10;
+    score.alpha = 0.7;
+    score.zIndex = 1;
+    uiContainer.addChild(score);
+    
+    const scoreText = new Text() 
+    scoreText.text = `Осталось ${GAME_DATA.remainItems}`;
+    scoreText.style.fill = "#000000";
+    scoreText.style.fontSize = 40;
+    scoreText.style.fontFamily = "Source Code Pro";
+    scoreText.style.fontWeight = "bold";
+    scoreText.x = 14;
+    scoreText.y = 12;
+    scoreText.zIndex = 2;
+    uiContainer.addChild(scoreText);
+
+    const itemsBar = new Graphics();
+    itemsBar.roundRect(0, 0, 1000, 150, 23);
+    itemsBar.fill("#f8d485");
+    itemsBar.stroke({ width: 5, color: "#6d6d6d" });
+    itemsBar.x = app.screen.width / 2 - itemsBar.width / 2;
+    itemsBar.y = app.screen.height - itemsBar.height - 10;
+    itemsBar.alpha = 0.7;
+    itemsBar.zIndex = 1;
+    uiContainer.addChild(itemsBar);
+
+    return { score, scoreText }
+}
+
+export async function createGame(app: Application, uiContainer: Container, gameContainer: Container) {
+    const background = await Assets.load(backUrl);
+    const backSprite = new Sprite(background);
+    backSprite.zIndex = -1;
+    const ratio = app.screen.height / background.height;
+    backSprite.scale.set(ratio, ratio);
+    gameContainer.addChild(backSprite);
+    let isDragging = false;
+    let startX = 0;
+    let mousePos = { x: app.screen.width / 2, y: app.screen.height / 2 };
+    const clampCameraX = (newX: number) => {
+        const minX = Math.min(0, app.screen.width - backSprite.width);
+        const maxX = 0;
+        
+        return Math.max(minX, Math.min(maxX, newX));
+    };
+
+    if (checkMobile()) {
+        window.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            startX = e.clientX;
+            gameContainer.x = clampCameraX(gameContainer.x + dx);
+        });
+
+        window.addEventListener('pointerup', () => isDragging = false);
+        window.addEventListener('pointercancel', () => isDragging = false);
+    } 
+    else {
+        window.addEventListener('mousemove', (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        app.ticker.add(() => {
+            const speed = 4;
+            const edge = 150;
+            
+            if (mousePos.x < edge) {
+                gameContainer.x = clampCameraX(gameContainer.x + speed);
+            }
+            else if (mousePos.x > app.screen.width - edge) {
+                gameContainer.x = clampCameraX(gameContainer.x - speed);
+            }
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        app.renderer.resize(window.innerWidth, window.innerHeight);
+        const newRatio = app.screen.height / background.height;
+        backSprite.scale.set(newRatio, newRatio);
+        gameContainer.x = clampCameraX(gameContainer.x);
+    });
+}
