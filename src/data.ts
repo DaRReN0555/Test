@@ -3,6 +3,8 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 import backUrl from '/back_lv0.webp?url';
 
+import { createParticles } from "./partickes";
+
 export const GAME_DATA = {
     remainItems: 6,
     score: 0
@@ -53,10 +55,12 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
         width = 370
         height = 150
     }
+    const itemsBar = uiContainer.getChildByName("itemsBar") as Container;
+
     const winBackground = new Graphics();
     winBackground.roundRect(-width / 2, -height / 2, width, height, 23);
-    winBackground.fill("#d6d6d6");
-    winBackground.stroke({ width: 5, color: "#6d6d6d" });
+    winBackground.fill("#8ddb75");
+    winBackground.stroke({ width: 5, color: "#58c04a" });
     
     winBackground.x = (app.screen.width / 2) / uiContainer.scale.x;
     winBackground.y = (app.screen.height / 2) / uiContainer.scale.y;
@@ -87,6 +91,7 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
         
         scoreText.alpha -= 0.02;
         score.alpha -= 0.02;
+        itemsBar.alpha -= 0.02;
         winBackground.alpha += 0.02;
         winBackground.scale.set(winBackground.scale.x + 0.02, winBackground.scale.y + 0.02);
         if (winBackground.alpha >= 1 || winBackground.scale.x >= 1) {
@@ -123,7 +128,7 @@ export function handleClick(
             uiIcon = itemsContainer.getChildByName(clickedSlotName) as Sprite;
         }
     }
-
+    createParticles(app, spineItem, clickedSlotName);
     let alpha = 1;
 
     const tick = () => {
