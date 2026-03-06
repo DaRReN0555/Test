@@ -4,6 +4,8 @@ import { pickRandomItems, createUI, createGame } from "./data";
 
 import { createSingleItem } from "./items";
 
+import { createItemsBar } from "./itemsBar";
+
 
 
 Assets.add({ alias: 'spine-data', src: './level0.json' });
@@ -23,10 +25,10 @@ app.stage.addChild(uiContainer);
 createGame(app, uiContainer, gameContainer);
 const UI = createUI(app, uiContainer);
 
+
 let state = pickRandomItems(6);
 let items = await createSingleItem(app, UI.scoreText, UI.score, uiContainer, gameContainer, state);
-
-
+const UIItemsBar = await createItemsBar(app, items, uiContainer, state);
 
 
 

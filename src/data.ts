@@ -115,16 +115,34 @@ export function handleClick(
         return; 
     }
 
+    const itemsBar = uiContainer.getChildByName("itemsBar") as Container;
+    let uiIcon: Sprite | null = null;
+    if (itemsBar) {
+        const itemsContainer = itemsBar.getChildByName("itemsContainer") as Container;
+        if (itemsContainer) {
+            uiIcon = itemsContainer.getChildByName(clickedSlotName) as Sprite;
+        }
+    }
+
     let alpha = 1;
 
     const tick = () => {
         alpha -= 0.05;
         slot.color.a = Math.max(0, alpha);
 
+        if (uiIcon) {
+            uiIcon.alpha = Math.max(0, alpha);
+        }
+
         if (alpha <= 0) {
             app.ticker.remove(tick);
             slot.attachment = null;
             slot.color.a = 1; 
+
+            if (uiIcon) {
+                uiIcon.visible = false;
+            }
+
             GAME_DATA.remainItems--;
             scoreText.text = `Осталось ${GAME_DATA.remainItems}`;
 
@@ -175,16 +193,6 @@ export function createUI(app: Application, uiContainer: Container) {
     scoreText.y = 12;
     scoreText.zIndex = 2;
     uiContainer.addChild(scoreText);
-
-    const itemsBar = new Graphics();
-    itemsBar.roundRect(0, 0, 1000, 150, 23);
-    itemsBar.fill("#f8d485");
-    itemsBar.stroke({ width: 5, color: "#6d6d6d" });
-    itemsBar.x = app.screen.width / 2 - itemsBar.width / 2;
-    itemsBar.y = app.screen.height - itemsBar.height - 10;
-    itemsBar.alpha = 0.7;
-    itemsBar.zIndex = 1;
-    uiContainer.addChild(itemsBar);
 
     return { score, scoreText }
 }
