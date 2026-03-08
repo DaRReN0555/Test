@@ -1,5 +1,6 @@
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { Application, Graphics, Container, Sprite, Texture, Rectangle, ColorMatrixFilter } from "pixi.js";
+import { updateLayout } from "./data";
 
 export async function createItemsBar(app: Application, items: Spine, uiContainer: Container, state: { items: string[], skin: string }) {
     const itemsBar = new Graphics();
@@ -76,5 +77,6 @@ export async function createItemsBar(app: Application, items: Spine, uiContainer
     });
 
     uiContainer.addChild(itemsBar);
+    updateLayout(app, uiContainer, new Container());
     return itemsBar;
 }

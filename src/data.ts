@@ -3,11 +3,16 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 import backUrl from '/back_lv0.webp?url';
 
-import { createParticles } from "./partickes";
+import { createParticles } from "./particles";
+
+import { createSingleItem } from "./items";
+import { createItemsBar } from "./itemsBar";
+
 
 export const GAME_DATA = {
     remainItems: 6,
-    score: 0
+    score: 0,
+    isPlaying: false
 }
 
 export const itemsNames: Array<string> = [
@@ -49,22 +54,16 @@ export const itemsSet: Array<string> = [
 ]
 
 function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiContainer: Container) {
-    let width = 700
-    let height = 200
-    if(checkMobile()) {
-        width = 370
-        height = 150
-    }
-    const itemsBar = uiContainer.getChildByName("itemsBar") as Container;
+    const width = 700;
+    const height = 200;
+    const itemsBar = uiContainer.getChildByLabel("itemsBar") as Container;
 
     const winBackground = new Graphics();
+    winBackground.label = "winBackground";
     winBackground.roundRect(-width / 2, -height / 2, width, height, 23);
     winBackground.fill("#8ddb75");
     winBackground.stroke({ width: 5, color: "#58c04a" });
-    
-    winBackground.x = (app.screen.width / 2) / uiContainer.scale.x;
-    winBackground.y = (app.screen.height / 2) / uiContainer.scale.y;
-    
+
     winBackground.alpha = 0;
     winBackground.scale.set(0); 
     uiContainer.addChild(winBackground);
@@ -99,6 +98,7 @@ function createWinAlert(app: Application, score: Graphics, scoreText: Text, uiCo
         }
     }
     app.ticker.add(tick);
+    updateLayout(app, uiContainer, new Container());
 }
 
 export function handleClick(
@@ -178,60 +178,64 @@ export function pickRandomItems(count: number): { items: string[]; skin: string 
 }
 
 export function createUI(app: Application, uiContainer: Container) {
+    const scoreContainer = new Container();
+    scoreContainer.label = "scoreContainer";
+
     const score = new Graphics();
     score.roundRect(0, 0, 250, 50, 23);
     score.fill("#f8d485");
     score.stroke({ width: 5, color: "#6d6d6d" });
-    score.x = 10;
-    score.y = 10;
     score.alpha = 0.7;
-    score.zIndex = 1;
-    uiContainer.addChild(score);
+    scoreContainer.addChild(score);
     
-    const scoreText = new Text() 
-    scoreText.text = `Осталось ${GAME_DATA.remainItems}`;
-    scoreText.style.fill = "#000000";
-    scoreText.style.fontSize = 40;
-    scoreText.style.fontFamily = "Source Code Pro";
-    scoreText.style.fontWeight = "bold";
+    const scoreText = new Text({
+        text: `Осталось ${GAME_DATA.remainItems}`,
+        style: {
+            fill: "#000000",
+            fontSize: 36,
+            fontFamily: "Source Code Pro",
+            fontWeight: "bold"
+        }
+    });
     scoreText.x = 14;
     scoreText.y = 12;
-    scoreText.zIndex = 2;
-    uiContainer.addChild(scoreText);
+    scoreContainer.addChild(scoreText);
 
-    return { score, scoreText }
+    scoreContainer.zIndex = 2;
+    uiContainer.addChild(scoreContainer);
+
+    updateLayout(app, uiContainer, new Container()); 
+
+    return { score, scoreText };
 }
 
 export async function createGame(app: Application, uiContainer: Container, gameContainer: Container) {
     const background = await Assets.load(backUrl);
     const backSprite = new Sprite(background);
     backSprite.zIndex = -1;
-    const ratio = app.screen.height / background.height;
-    backSprite.scale.set(ratio, ratio);
     gameContainer.addChild(backSprite);
-    let isDragging = false;
-    let startX = 0;
-    let mousePos = { x: app.screen.width / 2, y: app.screen.height / 2 };
+
     const clampCameraX = (newX: number) => {
         const minX = Math.min(0, app.screen.width - backSprite.width);
         const maxX = 0;
-        
         return Math.max(minX, Math.min(maxX, newX));
     };
+
+    let isDragging = false;
+    let startX = 0;
+    let mousePos = { x: app.screen.width / 2, y: app.screen.height / 2 };
 
     if (checkMobile()) {
         window.addEventListener('pointerdown', (e) => {
             isDragging = true;
             startX = e.clientX;
         });
-
         window.addEventListener('pointermove', (e) => {
             if (!isDragging) return;
             const dx = e.clientX - startX;
             startX = e.clientX;
             gameContainer.x = clampCameraX(gameContainer.x + dx);
         });
-
         window.addEventListener('pointerup', () => isDragging = false);
         window.addEventListener('pointercancel', () => isDragging = false);
     } 
@@ -242,6 +246,7 @@ export async function createGame(app: Application, uiContainer: Container, gameC
         });
 
         app.ticker.add(() => {
+            if (!GAME_DATA.isPlaying) return;
             const speed = 4;
             const edge = 150;
             
@@ -254,10 +259,143 @@ export async function createGame(app: Application, uiContainer: Container, gameC
         });
     }
 
-    window.addEventListener('resize', () => {
+window.addEventListener('resize', () => {
         app.renderer.resize(window.innerWidth, window.innerHeight);
-        const newRatio = app.screen.height / background.height;
-        backSprite.scale.set(newRatio, newRatio);
-        gameContainer.x = clampCameraX(gameContainer.x);
+        updateLayout(app, uiContainer, gameContainer, backSprite);
     });
+
+    updateLayout(app, uiContainer, gameContainer, backSprite);
+};
+
+export function createWelcomeScreen(app: Application, uiContainer: Container, gameContainer: Container) {
+    const welcomeBg = new Graphics();
+    welcomeBg.label = "welcomeBg";
+    welcomeBg.roundRect(0, 0, 900, 300, 20);
+    welcomeBg.stroke({ width: 5, color: "#6d6d6d" });
+    welcomeBg.fill("#f8d485");
+    welcomeBg.x = app.screen.width / 2 - welcomeBg.width / 2;
+    welcomeBg.y = app.screen.height / 2 - welcomeBg.height / 2;
+    welcomeBg.zIndex = 999;
+
+    const welcomeText = new Text({
+        text: 'Найдите все спрятанные предметы',
+        style: {
+            fill: "#000000",
+            fontSize: 45,
+            fontFamily: "Source Code Pro",
+            fontWeight: 'bold',
+        }
+    });
+    welcomeText.x = welcomeBg.width / 2 - welcomeText.width / 2;
+    welcomeText.y = 15;
+    welcomeText.zIndex = 999;
+    welcomeBg.addChild(welcomeText);
+
+    const playButton = new Graphics();
+    playButton.roundRect(0, 0, 300, 100, 15);
+    playButton.fill("#d3b247");
+    playButton.x = welcomeBg.width / 2 - playButton.width / 2;
+    playButton.y = welcomeBg.height - playButton.height - 70;
+    playButton.zIndex = 999;
+    welcomeBg.addChild(playButton);
+
+    const playText = new Text({
+        text: 'Играть',
+        style: {
+            fill: "#000000",
+            fontSize: 40,
+            fontFamily: "Source Code Pro",
+            fontWeight: 'bold',
+        }
+    });
+    playText.x = playButton.width / 2 - playText.width / 2;
+    playText.y = playButton.height / 2 - playText.height / 2 - 14;
+    const firstY = playText.y;
+    playText.zIndex = 999;
+    playButton.addChild(playText);
+
+    const playBg = new Graphics();
+    playBg.roundRect(0, 0, playButton.width, playButton.height, 15);
+    playBg.fill("#f0c361");
+    playBg.x = 0;
+    playBg.y = -10;
+    playBg.zIndex = 998;
+    playBg.interactive = true;
+    playBg.on('pointerdown', () => {
+        playBg.y = 0;
+        playText.y = firstY + 10;
+    });
+        playBg.on('pointerup', () => {
+        GAME_DATA.isPlaying = true;
+        playBg.y = -10;
+        playText.y = firstY;
+        uiContainer.removeChild(welcomeBg);
+        initGame(app, uiContainer, gameContainer);
+    });
+    playButton.addChild(playBg);
+
+
+
+    uiContainer.addChild(welcomeBg);
+    updateLayout(app, uiContainer, gameContainer);
+}
+
+export async function initGame(app: Application, uiContainer: Container, gameContainer: Container) {
+    
+    const UI = createUI(app, uiContainer);
+    let state = pickRandomItems(6);
+    let items = await createSingleItem(app, UI.scoreText, UI.score, uiContainer, gameContainer, state);
+    const UIItemsBar = await createItemsBar(app, items, uiContainer, state);
+}
+
+export function updateLayout(app: Application, uiContainer: Container, gameContainer: Container, backSprite?: Sprite) {
+    const sw = app.screen.width;
+    const sh = app.screen.height;
+    const isPortrait = sh > sw;
+
+    if (backSprite && backSprite.texture) {
+        const scaleX = sw / backSprite.texture.width;
+        const scaleY = sh / backSprite.texture.height;
+        const ratio = Math.max(scaleX, scaleY); 
+        backSprite.scale.set(ratio);
+
+        const minX = Math.min(0, sw - backSprite.width);
+        gameContainer.x = Math.max(minX, Math.min(0, gameContainer.x));
+    }
+
+    const scoreContainer = uiContainer.getChildByLabel("scoreContainer");
+    if (scoreContainer) {
+        const scale = isPortrait && checkMobile() ? 0.7 : 1;
+        scoreContainer.scale.set(scale);
+        scoreContainer.x = 10;
+        scoreContainer.y = 10;
+    }
+
+    const itemsBar = uiContainer.getChildByLabel("itemsBar");
+    if (itemsBar) {
+        const baseW = 1000;
+        const maxW = sw * 0.95;
+        let scale = Math.min(1, maxW / baseW);
+        
+        itemsBar.scale.set(scale);
+        itemsBar.x = sw / 2 - (baseW * scale) / 2;
+        itemsBar.y = sh - (150 * scale) - (isPortrait ? 30 : 15);
+
+    const welcomeBg = uiContainer.getChildByLabel("welcomeBg");
+    if (welcomeBg) {
+        const baseW = 900;
+        const maxW = sw * 0.9;
+        const scale = Math.min(1, maxW / baseW);
+        welcomeBg.scale.set(scale);
+        welcomeBg.x = sw / 2 - (baseW * scale) / 2;
+        welcomeBg.y = sh / 2 - (300 * scale) / 2;
+    }
+
+    const winBackground = uiContainer.getChildByLabel("winBackground");
+    if (winBackground) {
+        winBackground.x = sw / 2;
+        winBackground.y = sh / 2;
+
+    }
+}    
 }

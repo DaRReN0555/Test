@@ -1,6 +1,6 @@
 import { Application, Assets, Sprite, Graphics, Text, Container } from "pixi.js";
 import './style.css';
-import { pickRandomItems, createUI, createGame } from "./data";
+import { pickRandomItems, createUI, createGame, createWelcomeScreen, GAME_DATA } from "./data";
 
 import { createSingleItem } from "./items";
 
@@ -21,15 +21,9 @@ const uiContainer = new Container();
 app.stage.addChild(gameContainer);
 app.stage.addChild(uiContainer);
 
+createWelcomeScreen(app, uiContainer, gameContainer);
 
 createGame(app, uiContainer, gameContainer);
-const UI = createUI(app, uiContainer);
-
-
-let state = pickRandomItems(6);
-let items = await createSingleItem(app, UI.scoreText, UI.score, uiContainer, gameContainer, state);
-const UIItemsBar = await createItemsBar(app, items, uiContainer, state);
-
 
 
 
