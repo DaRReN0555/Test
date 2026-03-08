@@ -1,5 +1,5 @@
 import { Application, Assets, ColorMatrixFilter, Text, Graphics, Container } from "pixi.js";
-import { handleClick, itemsNames, pickRandomItems } from "./data";
+import { handleClick } from "./data";
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 export async function createSingleItem(app: Application, scoreText: Text, score: Graphics, uiContainer: Container, gameContainer: Container, state: { items: Array<string>, skin: string }) {
@@ -83,6 +83,7 @@ export async function createSingleItem(app: Application, scoreText: Text, score:
             handleClick(item, clickedItemName, app, scoreText, score, uiContainer, state);
         }
     });
-
+    item.label = "spineSceneItem";
+    lightEffect.label = "spineLightEffect";
     return item;
 }

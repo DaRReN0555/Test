@@ -1,10 +1,6 @@
-import { Application, Assets, Sprite, Graphics, Text, Container } from "pixi.js";
+import { Application, Assets, Container } from "pixi.js";
 import './style.css';
-import { pickRandomItems, createUI, createGame, createWelcomeScreen, GAME_DATA } from "./data";
-
-import { createSingleItem } from "./items";
-
-import { createItemsBar } from "./itemsBar";
+import { createGame, createWelcomeScreen} from "./data";
 
 
 

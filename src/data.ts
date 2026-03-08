@@ -345,7 +345,7 @@ export async function initGame(app: Application, uiContainer: Container, gameCon
     const UI = createUI(app, uiContainer);
     let state = pickRandomItems(6);
     let items = await createSingleItem(app, UI.scoreText, UI.score, uiContainer, gameContainer, state);
-    const UIItemsBar = await createItemsBar(app, items, uiContainer, state);
+    await createItemsBar(app, items, uiContainer, state);
 }
 
 export function updateLayout(app: Application, uiContainer: Container, gameContainer: Container, backSprite?: Sprite) {
@@ -353,15 +353,22 @@ export function updateLayout(app: Application, uiContainer: Container, gameConta
     const sh = app.screen.height;
     const isPortrait = sh > sw;
 
+    let currentBgScale = 1;
     if (backSprite && backSprite.texture) {
         const scaleX = sw / backSprite.texture.width;
         const scaleY = sh / backSprite.texture.height;
-        const ratio = Math.max(scaleX, scaleY); 
-        backSprite.scale.set(ratio);
-
-        const minX = Math.min(0, sw - backSprite.width);
-        gameContainer.x = Math.max(minX, Math.min(0, gameContainer.x));
+        currentBgScale = Math.max(scaleX, scaleY); 
+        backSprite.scale.set(currentBgScale);
     }
+
+    const spineItem = gameContainer.getChildByLabel("spineSceneItem");
+    const lightEffect = gameContainer.getChildByLabel("spineLightEffect");
+
+    [spineItem, lightEffect].forEach(obj => {
+        if (obj) {
+            obj.scale.set(1.2 * currentBgScale);
+        }
+    });
 
     const scoreContainer = uiContainer.getChildByLabel("scoreContainer");
     if (scoreContainer) {
