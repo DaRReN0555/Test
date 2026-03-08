@@ -353,7 +353,7 @@ export function updateLayout(app: Application, uiContainer: Container, gameConta
     const sh = app.screen.height;
     const isPortrait = sh > sw;
 
-    let currentBgScale = 1;
+let currentBgScale = 1;
     if (backSprite && backSprite.texture) {
         const scaleX = sw / backSprite.texture.width;
         const scaleY = sh / backSprite.texture.height;
@@ -364,11 +364,21 @@ export function updateLayout(app: Application, uiContainer: Container, gameConta
     const spineItem = gameContainer.getChildByLabel("spineSceneItem");
     const lightEffect = gameContainer.getChildByLabel("spineLightEffect");
 
-    [spineItem, lightEffect].forEach(obj => {
-        if (obj) {
-            obj.scale.set(1.2 * currentBgScale);
-        }
-    });
+const baseWidth = 1920;
+const screenScale = sw / baseWidth;
+
+let deviceFactor = 1;
+if (checkMobile()) {
+    deviceFactor = isPortrait ? 0.65 : 0.8;
+}
+
+const finalScale = Math.max(0.5, screenScale) * deviceFactor;
+
+[spineItem, lightEffect].forEach(obj => {
+    if (obj) {
+        obj.scale.set(finalScale);
+    }
+});
 
     const scoreContainer = uiContainer.getChildByLabel("scoreContainer");
     if (scoreContainer) {
